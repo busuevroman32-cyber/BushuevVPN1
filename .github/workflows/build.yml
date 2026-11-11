@@ -1,0 +1,40 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Unzip project
+      run: |
+        mkdir project_folder
+        unzip BushuevVPN1.zip -d project_folder
+        
+    - name: set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Build with Gradle
+      working-directory: ./project_folder
+      run: |
+        if [ -f "gradlew" ]; then
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        elif [ -d "BushuevVPN1" ] && [ -f "BushuevVPN1/gradlew" ]; then
+          cd BushuevVPN1
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        else
+          gradle assembleDebug
+        fi
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: BushuevVPN-APK
+        path: |
+          **/app/build/outputs/apk/debug/*.apk
+          **/build/outputs/apk/debug/*.apk
